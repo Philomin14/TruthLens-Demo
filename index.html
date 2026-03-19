@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TruthLens Factchecker | Verify the News</title>
+    <title>TruthLens Factchecker</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,18 +14,51 @@
     </header>
 
     <main>
-        <article class="fact-card">
-            <h2>Claim: Example Title</h2>
-            <p><strong>Source:</strong> Fake news site</p>
-            <p class="verdict false">Verdict: FALSE</p>
-            <p><strong>The Facts:</strong> This is wrong because...
+        <article class="search-card">
+            <h2>Verify a Claim</h2>
+            <p><em>Search below to verify a news story</em></p>
+            
+            <div class="search-container">
+                <input type="text" id="demoInput" placeholder="Enter a news claim...">
+                <button type="button" id="demoButton">Check Fact</button>
+            </div>
+            
+            <p id="errorMessage" class="error-text" style="display: none;">
+                For this demo, there are only limited search options.
             </p>
         </article>
     </main>
 
-    <footer style="text-align: center; margin-top: 40px;">
-        <p><a href="disclaimer.html">Read our Disclaimer</a></p>
+    <footer>
+        <p class="disclaimer-text">
+            <strong>Disclaimer:</strong> TruthLens is not responsible....
+        </p>
     </footer>
 
+    <script>
+        const button = document.getElementById('demoButton');
+        const input = document.getElementById('demoInput');
+        const errorMsg = document.getElementById('errorMessage');
+
+        button.addEventListener('click', function() {
+            // 1. Get user input and force it to be lowercase
+            const userText = input.value.toLowerCase(); 
+            
+            // 2. Hide the error message every time they click (in case it was showing from a previous try)
+            errorMsg.style.display = "none";
+
+            // 3. Check against STRICTLY LOWERCASE keywords
+            if (userText.includes("musk")) {
+                window.location.href = "elon-musk.html"; 
+            } 
+            else if (userText.includes("who") || userText.includes("covid")) {
+                window.location.href = "who-covid.html";  
+            } 
+            else {
+                // Show the error message if no match
+                errorMsg.style.display = "block";
+            }
+        });
+    </script>
 </body>
 </html>
