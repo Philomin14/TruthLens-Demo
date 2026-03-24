@@ -1,27 +1,29 @@
-import os
-from azure.ai.inference import ChatCompletionsClient
-from azure.ai.inference.models import SystemMessage, UserMessage
-from azure.core.credentials import AzureKeyCredential
+import OpenAI from openai;
 
-endpoint = "https://models.github.ai/inference"
-model = "deepseek/DeepSeek-V3-0324"
-token = os.environ["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"]
+const token = process.env["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"];
 
-client = ChatCompletionsClient(
-    endpoint=endpoint,
-    credential=AzureKeyCredential(token),
-)
+export async function main() {
 
-response = client.complete(
-    messages=[
-        SystemMessage(""),
-        UserMessage("What is the capital of France?"),
+  const client = new OpenAI({
+    baseURL: "https://models.github.ai/inference",
+    apiKey: token
+  });
+
+  const response = await client.chat.completions.create({
+    messages: [
+      { role:"system", content: "" },
+      { role:"user", content: "What is the capital of France?" }
     ],
-    temperature=0.8,
-    top_p=0.1,
-    max_tokens=2048,
-    model=model
-)
+    model: "openai/gpt-4o",
+    temperature: 1,
+    max_tokens: 4096,
+    top_p: 1
+  });
 
-print(response.choices[0].message.content)
+  console.log(response.choices[0].message.content);
+}
+
+main().catch((err) => {
+  console.error("The sample encountered an error:", err);
+});
 
