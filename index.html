@@ -2,62 +2,463 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TruthLens Factchecker</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>TruthLens Fact Checker • Advanced Verification</title>
+    <meta name="description" content="Enhanced fact-checking tool with search history, loading states, and intelligent error handling">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            background: linear-gradient(145deg, #f5f7fc 0%, #eef2f7 100%);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #1a2634;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+
+        header {
+            background: #0b2b3b;
+            background-image: radial-gradient(circle at 10% 30%, rgba(30, 100, 120, 0.25) 0%, rgba(8, 28, 38, 0) 70%);
+            color: white;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            border-bottom: 4px solid #f0b27a;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        header h1 {
+            font-size: 2.6rem;
+            letter-spacing: -0.02em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF, #e0f0f5);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        header p {
+            font-size: 1.2rem;
+            margin-top: 0.6rem;
+            opacity: 0.85;
+            font-weight: 500;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+        }
+
+        .search-card {
+            background: white;
+            max-width: 820px;
+            width: 100%;
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 2rem 2rem 2.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s;
+            border: 1px solid rgba(255,255,240,0.6);
+        }
+
+        .search-card h2 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            background: linear-gradient(120deg, #1f4e6e, #2c6e4f);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-card > p {
+            color: #2c3e44;
+            margin-bottom: 1.8rem;
+            font-size: 1rem;
+            border-left: 3px solid #f0b27a;
+            padding-left: 1rem;
+        }
+
+        .search-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0 0.5rem;
+        }
+
+        #demoInput {
+            flex: 3;
+            min-width: 200px;
+            padding: 0.9rem 1.2rem;
+            font-size: 1rem;
+            border: 2px solid #dce5ec;
+            border-radius: 60px;
+            background: #fefefe;
+            transition: all 0.2s;
+            font-family: inherit;
+            outline: none;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        #demoInput:focus {
+            border-color: #3f8da7;
+            box-shadow: 0 0 0 3px rgba(63, 141, 167, 0.2);
+        }
+
+        #demoButton {
+            flex: 1;
+            background: #1e5a6f;
+            border: none;
+            padding: 0.9rem 1.4rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            letter-spacing: 0.3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        #demoButton:hover:not(:disabled) {
+            background: #0e3f50;
+            transform: scale(0.98);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+
+        #demoButton:active:not(:disabled) {
+            background: #09323f;
+        }
+
+        #demoButton:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-text {
+            background: #fff3e8;
+            color: #b13e3e;
+            padding: 0.8rem 1rem;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            margin-top: 1.5rem;
+            border-left: 5px solid #e67e22;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .error-text::before {
+            content: "⚠️";
+            font-size: 1.1rem;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 0.8rem 1rem;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            border-left: 5px solid #4caf50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .history-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .history-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c5a6e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .clear-history {
+            background: none;
+            border: none;
+            color: #9e9e9e;
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .clear-history:hover {
+            background: #f0f0f0;
+            color: #d32f2f;
+        }
+
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            border: 1px solid #e0e7ed;
+            border-radius: 40px;
+            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #2c3e44;
+        }
+
+        .history-item:hover {
+            background: #e9ecef;
+            border-color: #3f8da7;
+            transform: translateY(-1px);
+        }
+
+        .history-item .recent-badge {
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+
+        .empty-history {
+            color: #adb5bd;
+            font-size: 0.85rem;
+            padding: 0.5rem 0;
+            font-style: italic;
+        }
+
+        .supported-keywords {
+            background: #f1f8fe;
+            border-radius: 16px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .supported-keywords p {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1e5a6f;
+            margin-bottom: 0.5rem;
+        }
+
+        .keyword-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .keyword-badge {
+            background: white;
+            border: 1px solid #cbdde6;
+            border-radius: 30px;
+            padding: 0.25rem 0.8rem;
+            font-size: 0.75rem;
+            color: #1e5a6f;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .keyword-badge:hover {
+            background: #1e5a6f;
+            color: white;
+            border-color: #1e5a6f;
+        }
+
+        footer {
+            background: #0e1c24;
+            color: #bfd7e2;
+            padding: 1.4rem 1.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            border-top: 1px solid #2c4b5a;
+        }
+
+        .disclaimer-text {
+            max-width: 760px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+
+        .disclaimer-text strong {
+            color: #f0bc8c;
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .search-card {
+                padding: 1.5rem;
+            }
+            header h1 {
+                font-size: 1.9rem;
+            }
+            .search-card h2 {
+                font-size: 1.6rem;
+            }
+            .search-container {
+                flex-direction: column;
+            }
+            #demoButton {
+                width: 100%;
+            }
+            .history-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @keyframes fadeSlideUp {}
+
+</style>    </head>
+<body>
     <header>
-        <h1>TruthLens Fact Checker</h1>
-        <p>Verifying national news stories.</p>
+        <h1>TruthLens</h1>
+        <p>Advanced Verification & Fact Checking</p>
     </header>
 
     <main>
-        <article class="search-card">
+        <div class="search-card">
             <h2>Verify a Claim</h2>
-            <p><em>Search below to verify a news story</em></p>
+            <p>Enter a statement, article link, or image to verify its authenticity.</p>
             
             <div class="search-container">
-                <input type="text" id="demoInput" placeholder="Enter a news claim...">
-                <button type="button" id="demoButton">Check Fact</button>
+                <input type="text" id="demoInput" placeholder="Enter a claim to fact-check...">
+                <button id="demoButton">Verify</button>
             </div>
-            
-            <p id="errorMessage" class="error-text" style="display: none;">
-                For this demo, there are only limited search options.
-            </p>
-        </article>
+
+            <div class="supported-keywords">
+                <p>Trending Topics</p>
+                <div class="keyword-badges">
+                    <span class="keyword-badge">AI News</span>
+                    <span class="keyword-badge">Elections</span>
+                    <span class="keyword-badge">Health Myths</span>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <div class="history-header">
+                    <h3>Recent Searches</h3>
+                    <button class="clear-history">Clear</button>
+                </div>
+                <div class="history-list">
+                    <div class="history-item">Are artificial sweeteners safe?</div>
+                    <div class="history-item">Moon landing facts</div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer>
-        <p class="disclaimer-text">
-            <strong>Disclaimer:</strong> TruthLens is not responsible....
-        </p>
+        <div class="disclaimer-text">
+            <strong>Disclaimer:</strong> TruthLens provides human-verified analysis. We prioritize primary-sourced evidence, but cannot guarantee absolute certainty. Users should treat this tool as a starting point for their own critical research.
+        </div>
     </footer>
-
     <script>
-        const button = document.getElementById('demoButton');
-        const input = document.getElementById('demoInput');
-        const errorMsg = document.getElementById('errorMessage');
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('demoInput');
+            const button = document.getElementById('demoButton');
 
-        button.addEventListener('click', function() {
-            // 1. Get user input and force it to be lowercase
-            const userText = input.value.toLowerCase(); 
-            
-            // 2. Hide the error message every time they click (in case it was showing from a previous try)
-            errorMsg.style.display = "none";
+            async function handleSearch() {
+                const query = input.value.toLowerCase().trim();
+                
+                if (!query) return; // Don't do anything if empty
 
-            // 3. Check against STRICTLY LOWERCASE keywords
-            if (userText.includes("musk")) {
-                window.location.href = "elon-musk.html"; 
-            } 
-            else if (userText.includes("who") || userText.includes("covid")) {
-                window.location.href = "who-covid.html";  
-            } 
-            else {
-                // Show the error message if no match
-                errorMsg.style.display = "block";
+                // 1. Show the loading state you built in CSS
+                button.innerHTML = '<span class="loading-spinner"></span> Verifying...';
+                button.disabled = true;
+
+                // 2. Wait 1 second to look like the AI is "thinking"
+                setTimeout(() => {
+                    // 3. Demo Logic: Redirect based on keywords
+                    if (query.includes('musk') || query.includes('amazon')) {
+                        window.location.href = 'result.html?id=2';
+                    } 
+                    else if (query.includes('who') || query.includes('covid') || query.includes('pandemic')) {
+                        window.location.href = 'result.html?id=1';
+                    } 
+                    else {
+                        // Default to the Musk page for the demo if you type anything else
+                        window.location.href = 'result.html?id=2';
+                    }
+                }, 1000);
             }
+
+            // Trigger on button click
+            button.addEventListener('click', handleSearch);
+
+            // Trigger on "Enter" key
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleSearch();
+            });
+
+            // Make the keyword badges clickable too!
+            document.querySelectorAll('.keyword-badge').forEach(badge => {
+                badge.addEventListener('click', () => {
+                    input.value = badge.textContent;
+                    handleSearch();
+                });
+            });
         });
     </script>
 </body>
