@@ -1,3 +1,4 @@
+import os
 import OpenAI from openai;
 
 const token = process.env["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"];
